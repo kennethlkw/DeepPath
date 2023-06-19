@@ -67,11 +67,9 @@ def train():
 			env = Env(dataPath, train_data[episode%num_samples])
 			sample = train_data[episode%num_samples].split()
 
-			try:
-				good_episodes = teacher(sample[0], sample[1], 5, env, graphpath)
-			except Exception as e:
-				print('Cannot find a path')
-				continue
+			
+			good_episodes = teacher(sample[0], sample[1], 5, env, graphpath)
+			
 
 			for item in good_episodes:
 				state_batch = []

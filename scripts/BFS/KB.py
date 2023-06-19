@@ -1,3 +1,6 @@
+from utils import *
+from sklearn.metrics.pairwise import cosine_similarity
+
 class KB(object):
 	def __init__(self):
 		self.entities = {}
@@ -21,6 +24,56 @@ class KB(object):
 				del self.entities[entity2][idx]
 				break
 
+	def computeEmb(self,entity):
+		from env import Env
+		dataPath = "../FB15k-237/"
+		embedding_dim = 100
+		env = Env(dataPath)
+
+		id = env.entity2id_[entity]
+		emb = env.entity2vec[id]
+		emb = np.reshape(emb, (-1,embedding_dim))
+
+		return emb
+
+
+	def pickSemanticCloseEntity(self, entity1, entity2, num):
+		from sets import Set
+		from env import Env
+		
+		res = Set()
+		dataPath = "../FB15k-237/"
+		embedding_dim = 100
+		env = Env(dataPath)
+		if num > len(self.entities) - 2:
+			raise ValueError('Number of Intermediates picked is larger than possible', 'num_entities: {}'.format(len(self.entities)), 'num_itermediates: {}'.format(num))
+		for i in range(num):
+			
+			itermediate = random.choice(self.entities.keys())
+			
+			itermediate_id = env.entity2id_[itermediate]
+			
+			int_emb = env.entity2vec[itermediate_id]
+			
+			ent1_emb = env.entity2vec[env.entity2id_[entity1],:]
+			ent2_emb = env.entity2vec[env.entity2id_[entity2],:]
+			ent1_emb = np.reshape(ent1_emb, (-1,embedding_dim))
+			ent2_emb = np.reshape(ent2_emb, (-1,embedding_dim))
+			int_emb = np.reshape(int_emb, (-1,embedding_dim))
+			THRESHOLD = 0.5
+
+			cos_sim = cosine_similarity(int_emb, ent1_emb) * cosine_similarity(int_emb, ent2_emb)
+
+			while itermediate in res or itermediate == entity1 or itermediate == entity2 or cos_sim < THRESHOLD:
+				itermediate = random.choice(self.entities.keys())
+				int_emb = self.computeEmb(itermediate)
+				cos_sim = cosine_similarity(int_emb, ent1_emb) * cosine_similarity(int_emb, ent2_emb)
+				THRESHOLD -= 0.1
+
+			res.add(itermediate)
+			THRESHOLD = 0.5
+		return list(res)
+	
 	def pickRandomIntermediatesBetween(self, entity1, entity2, num):
 		#TO DO: COULD BE IMPROVED BY NARROWING THE RANGE OF RANDOM EACH TIME ITERATIVELY CHOOSE AN INTERMEDIATE  
 		from sets import Set

@@ -21,7 +21,7 @@ target_update_freq = 1000
 max_steps = 50
 max_steps_test = 50
 
-dataPath = '../NELL-995/'
+dataPath = '../FB15k-237/'
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'))
 
@@ -40,7 +40,8 @@ def teacher(e1, e2, num_paths, env, path = None):
 		ent1, rel, ent2 = line.rsplit()
 		kb.addRelation(ent1, rel, ent2)
 	# kb.removePath(e1, e2)
-	intermediates = kb.pickRandomIntermediatesBetween(e1, e2, num_paths)
+	#intermediates = kb.pickRandomIntermediatesBetween(e1, e2, num_paths)
+	intermediates = kb.pickSemanticCloseEntity(e1, e2, num_paths)
 	res_entity_lists = []
 	res_path_lists = []
 	for i in range(num_paths):
